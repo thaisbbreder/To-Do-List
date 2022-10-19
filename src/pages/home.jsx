@@ -13,15 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useEffect, useState } from "react";
 
 const Home = () => {
-  const [tarefas, setTarefas] = useState([
-    {
-      id: 1,
-      nome: "Tarefa 1",
-      descricao: "Descrição da tarefa 1",
-      feito: false,
-    },
-  ]);
-
+  const [tarefas, setTarefas] = useState([]);
   const[textoTarefa, setTextoTarefa] = useState("") //variavel para armazenar o valor do input
   
   const addTarefa = () => {
