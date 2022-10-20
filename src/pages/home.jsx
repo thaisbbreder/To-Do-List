@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 
 const Home = () => {
   const [tarefas, setTarefas] = useState([]);
+
   const[textoTarefa, setTextoTarefa] = useState("") //variavel para armazenar o valor do input
   
   const addTarefa = () => {
@@ -84,8 +85,9 @@ const Home = () => {
         style={{
           margin: "auto",
           width: "30%",
-          height: "auto",
+          maxHeight: "60%",
           padding: "40px",
+          overflow: "auto"
         }}
       >
         <Typography fontSize={24} fontWeight={"bold"} textAlign={"center"}>
@@ -109,19 +111,22 @@ const Home = () => {
         />
 
         <TextField 
-        id="standard-basic"
-        label="Descrição da tarefa"
-        variant="standard" 
+        id="outlined-basic"
+        label="Descrição"
+        variant="outlined" 
         size="small"
+        margin="normal"
         fullWidth
         value={textoDescricao}
         onChange={e=> setTextoDescricao(e.target.value)}
         />
 
-        <Button variant="contained" onClick={() => addTarefa()}> Adicionar </Button>
+        <Button variant="contained" 
+        onClick={() => addTarefa()}> Adicionar </Button>
         </div>
 
-        {tarefas.map((tarefa) => {
+        
+          {tarefas.map((tarefa) => {
           return (
             <div key={tarefa.id}>
             <FormControlLabel 
@@ -135,10 +140,10 @@ const Home = () => {
               />
               <Typography>{tarefa.descricao}</Typography>
 
-              <IconButton aria-label="delete"
+              <IconButton aria-label="delete" 
               onClick={() => deletaTarefa(tarefa.id)}> <DeleteIcon />
               </ IconButton>
-
+              
               <Divider />
             </div>
           );
