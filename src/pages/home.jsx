@@ -148,6 +148,8 @@ const Home = () => {
                   borderRadius="5px"
                   style={{
                     backgroundColor: tarefa.prioridade === false ? "" : "#ffbfaa",
+                    textDecoration: tarefa.feito === false ? "" : "line-through"
+                    
                   }}
                 >
                   <FormControlLabel
