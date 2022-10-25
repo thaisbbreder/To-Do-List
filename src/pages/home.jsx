@@ -9,13 +9,7 @@ import {
 } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MapIcon from '@mui/icons-material/Map';
 import Grid2 from '@mui/material/Unstable_Grid2';
-import Box from '@mui/material/Box';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
 import { useEffect, useState } from "react";
 
 const Home = () => {
@@ -29,12 +23,12 @@ const Home = () => {
       nome: textoTarefa,
       descricao: textoDescricao,
       prioridade: false, //false: normal  true: urgente
-      feito: false, //false: não feito true: feito
+      feito: false, //false: não feito  true: feito
     }
     novoArray.push(novaTarefa);
     setTarefas(novoArray)
   }
-  const [textoDescricao, setTextoDescricao] = useState("") //variavel para armazenar o valor do input
+  const [textoDescricao, setTextoDescricao] = useState("")
   const addDescricao = () => {
     const itemDescricao = [...tarefas.descricao];
     const novaDescricao = {
@@ -72,7 +66,6 @@ const Home = () => {
       novaPrioridade.filter((tarefa) => {
         if (tarefa.id === id) {
           tarefa.prioridade = !tarefa.prioridade;
-          tarefas.sort()
           return tarefa;
         } else {
           return tarefa;
@@ -81,9 +74,14 @@ const Home = () => {
       return novaPrioridade;
     })
   }
+  {/* const mudaPosicao = () => {
+    const novaPosição = tarefas.unshift((tarefa) => {
+      })
+    setTarefas(novaPosição)
+  } */}
 
   return (
-    <Grid2 container spacing={2}>
+    <Grid2 container spacing={4}>
       <div
         style={{
           display: "grid",
@@ -94,29 +92,25 @@ const Home = () => {
       >
         <Paper
           style={{
-            display: "grid",
             margin: "auto",
             width: "40%",
             maxHeight: "60%",
             padding: "40px",
             overflow: "auto",
-            textAlign: "center",
-            color: "#007e80"
           }}
         >
           <Grid2 xs={12}>
-            <Typography fontSize={34} fontWeight={"bold"} textAlign={"center"} >
+            <Typography fontSize={34} fontWeight={"bold"} color={"#007E80"} textAlign={"center"}>
               To-do List
             </Typography>
           </Grid2>
 
-          <Grid2 xs={12}>
+          <Grid2 xs={12} textAlign="center">
             <TextField
               id="outlined-basic"
               label="Nova tarefa"
               variant="outlined"
               size="small"
-              margin="dense"
               fullWidth
               value={textoTarefa}
               onChange={e => setTextoTarefa(e.target.value)}
@@ -126,15 +120,13 @@ const Home = () => {
               label="Descrição"
               variant="outlined"
               size="small"
-              margin="normal"
+              margin="dense"
               fullWidth
               value={textoDescricao}
               onChange={e => setTextoDescricao(e.target.value)}
             />
-            <Button variant="contained" color="secondary" margin="dense"
-              onClick={() => addTarefa()}>
-              Adicionar
-            </Button>
+            <Button variant="contained" color="secondary"
+              onClick={() => addTarefa()}>Adicionar</Button>
           </Grid2>
 
           {tarefas.map((tarefa) => {
@@ -142,14 +134,13 @@ const Home = () => {
               <div key={tarefa.id}>
                 <Grid2 xs={12}
                   display="flex"
-                  flexDirection="row"
                   justifyContent="space-between"
+                  flexWrap="wrap"
                   alignItems="center"
                   borderRadius="5px"
                   style={{
                     backgroundColor: tarefa.prioridade === false ? "" : "#ffbfaa",
-                    textDecoration: tarefa.feito === false ? "" : "line-through"
-                    
+                    textDecoration: tarefa.feito === false ? "" : "line-through",
                   }}
                 >
                   <FormControlLabel
@@ -163,35 +154,31 @@ const Home = () => {
                     }>
                   </FormControlLabel>
 
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      color: "#007e80"
-                    }}
-                    onClick={() => mudaPrioridade(tarefa.id)}> urgente
-                  </Button>
-
-                  <IconButton aria-label="delete"
-                    style={{
-                      textAlign: "left",
-                      color: "#007e80",
-                      position: "relative",
-                      textAlign: "left"
-                    }}
-                    onClick={() => deletaTarefa(tarefa.id)}>
-                    <DeleteIcon />
-                  </ IconButton>
-
-                  <Typography textAlign={"left"}>
-                    {tarefa.descricao}
+                  <Typography>
+                    <p>{tarefa.descricao}</p>
                   </Typography>
+
+                  <div style={{ alignItems: "flex-end" }}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      style={{
+                        background: "#F4796B",
+                        color: "#222016"
+                      }}
+                      onClick={() => mudaPrioridade(tarefa.id)}> Urgente
+                    </Button>
+                    <IconButton aria-label="delete"
+                      style={{
+                        color: "#007e80",
+                      }}
+                      onClick={() => deletaTarefa(tarefa.id)}>
+                      <DeleteIcon />
+                    </ IconButton>
+                  </div>
                 </Grid2>
                 <Divider />
-
               </div>
             );
           })}
