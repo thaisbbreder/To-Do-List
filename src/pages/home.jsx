@@ -13,8 +13,10 @@ import Grid2 from '@mui/material/Unstable_Grid2';
 import { useEffect, useState } from "react";
 
 const Home = () => {
+  // Estados
   const [tarefas, setTarefas] = useState([]);
   const [textoTarefa, setTextoTarefa] = useState("")
+  const [textoDescricao, setTextoDescricao] = useState("")
 
   const addTarefa = () => {
     const novoArray = [...tarefas];
@@ -28,24 +30,14 @@ const Home = () => {
     novoArray.push(novaTarefa);
     setTarefas(novoArray)
   }
-  const [textoDescricao, setTextoDescricao] = useState("")
-  const addDescricao = () => {
-    const itemDescricao = [...tarefas.descricao];
-    const novaDescricao = {
-      id: tarefas.length + 1,
-      nome: textoTarefa,
-      descricao: textoDescricao,
-      feito: false,
-    }
-    itemDescricao.push(novaDescricao);
-    setTarefas(itemDescricao)
-  }
+  
   const deletaTarefa = (id) => {
     const novaLista = tarefas.filter((tarefa) => {
       return tarefa.id !== id
     })
     setTarefas(novaLista)
   }
+  
   const mudaEstado = (id) => {
     setTarefas((estadoAtual) => {
       const novoEstado = [...estadoAtual];
@@ -74,11 +66,6 @@ const Home = () => {
       return novaPrioridade;
     })
   }
-  {/* const mudaPosicao = () => {
-    const novaPosição = tarefas.unshift((tarefa) => {
-      })
-    setTarefas(novaPosição)
-  } */}
 
   return (
     <Grid2 container spacing={4}>
