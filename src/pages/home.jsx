@@ -19,6 +19,7 @@ const Home = () => {
   const [textoDescricao, setTextoDescricao] = useState("")
 
   const addTarefa = () => {
+    // TODO: Fazer validação para não adicionar tarefas em branco
     const novoArray = [...tarefas];
     const novaTarefa = {
       id: tarefas.length + 1,
@@ -37,7 +38,7 @@ const Home = () => {
     })
     setTarefas(novaLista)
   }
-  
+
   const mudaEstado = (id) => {
     setTarefas((estadoAtual) => {
       const novoEstado = [...estadoAtual];
@@ -68,15 +69,13 @@ const Home = () => {
   }
 
   return (
-    <Grid2 container spacing={4}>
-      <div
-        style={{
-          display: "grid",
-          width: "100vw",
-          height: "100vh",
-          background: "linear-gradient(to bottom right, #007e80 20%, #004853 90%",
-        }}
-      >
+    <Grid2 container spacing={4} style={{
+      display: "grid",
+      width: "100vw",
+      height: "100vh",
+      background: "linear-gradient(to bottom right, #007e80 20%, #004853 90%",
+    }}>
+      
         <Paper
           style={{
             margin: "auto",
@@ -112,26 +111,24 @@ const Home = () => {
               value={textoDescricao}
               onChange={e => setTextoDescricao(e.target.value)}
             />
-            <Button variant="contained" color="secondary"
+            <Button variant="contained" color="secondary" style={{margin: '10px 0 0 0'}}
               onClick={() => addTarefa()}>Adicionar</Button>
           </Grid2>
 
           {tarefas.map((tarefa) => {
             return (
-              <div key={tarefa.id}>
-                <Grid2 xs={12}
-                  display="flex"
-                  justifyContent="space-between"
-                  flexWrap="wrap"
-                  alignItems="center"
-                  borderRadius="5px"
-                  style={{
-                    backgroundColor: tarefa.prioridade === false ? "" : "#ffbfaa",
-                    textDecoration: tarefa.feito === false ? "" : "line-through",
-                  }}
-                >
+              <Grid2 container key={tarefa.id}
+              alignItems="center" style={{
+                backgroundColor: tarefa.prioridade === false ? "" : "#ffbfaa",
+                textDecoration: tarefa.feito === false ? "" : "line-through",
+                maxHeight:'100px',
+                padding: '0 10px',
+              }}
+              spacing={0}
+              borderRadius="5px">
+                  
+                  <Grid2 item sm={1}>
                   <FormControlLabel
-                    label={tarefa.nome}
                     control={
                       <Checkbox
                         checked={tarefa.feito}
@@ -140,12 +137,18 @@ const Home = () => {
                       </Checkbox>
                     }>
                   </FormControlLabel>
+                  </Grid2>
 
-                  <Typography>
-                    <p>{tarefa.descricao}</p>
+                  <Grid2 item sm={6}>
+                    <Typography p={'10px 0 2px'} fontWeight={'bold'}>
+                    {tarefa.nome}
                   </Typography>
+                  <Typography p={'2px 0 10px'}>
+                    {tarefa.descricao}
+                  </Typography>
+                  </Grid2>
 
-                  <div style={{ alignItems: "flex-end" }}>
+                  <Grid2 item sm={5} textAlign={'right'}>
                     <Button
                       variant="outlined"
                       color="error"
@@ -163,14 +166,12 @@ const Home = () => {
                       onClick={() => deletaTarefa(tarefa.id)}>
                       <DeleteIcon />
                     </ IconButton>
-                  </div>
-                </Grid2>
+                  </Grid2>
                 <Divider />
-              </div>
+              </Grid2>
             );
           })}
         </Paper>
-      </div>
     </Grid2>
   );
 };
