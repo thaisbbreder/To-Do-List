@@ -25,16 +25,11 @@ const Home = () => {
   const [urgencia, setUrgencia] = useState(1);
 
   const cores = {
-    1: "#FF0000",
-    2: "#FFA500",
-    3: "#FFFF00",
-    4: "#008000",
-    5: "#0000FF",
-    6: "#4B0082",
-    7: "#EE82EE",
-    8: "#000000",
-    9: "#FFFFFF",
-    10: "#808080",
+    1: "#F3E6BC",
+    2: "#F1C972",
+    3: "#F5886B",
+    4: "#72AE95",
+    5: "#71CBC4",
   };
 
   const addTarefa = () => {
@@ -44,10 +39,10 @@ const Home = () => {
       id: tarefas.length + 1,
       nome: textoTarefa,
       descricao: textoDescricao,
-      prioridade: false, //false: normal  true: urgente
       feito: false, //false: não feito  true: feito
       urgencia: urgencia,
     };
+
     novoArray.push(novaTarefa);
     // TODO: Estudar função de sorting!!!
     novoArray.sort((a, b) => b.urgencia - a.urgencia);
@@ -75,21 +70,19 @@ const Home = () => {
     });
   };
 
-  //clicar no botão para a prioridade ser alterada
-  // const mudaPrioridade = (id) => {
-  //   setTarefas((prioridadeAtual) => {
-  //     const novaPrioridade = [...prioridadeAtual];
-  //     novaPrioridade.filter((tarefa) => {
-  //       if (tarefa.id === id) {
-  //         tarefa.prioridade = !tarefa.prioridade;
-  //         return tarefa;
-  //       } else {
-  //         return tarefa;
-  //       }
-  //     });
-  //     return novaPrioridade;
-  //   });
-  // };
+  const mudaUrgencia = (id, urgencia) => {
+    const novaUrgencia = [...tarefas];
+    novaUrgencia.filter((tarefa) => {
+      if (tarefa.id === id) {
+        tarefa.urgencia = urgencia;
+        return tarefa;
+      } else {
+        return tarefa;
+      }
+    });
+    novaUrgencia.sort((a, b) => b.urgencia - a.urgencia);
+    setTarefas(novaUrgencia);
+  };
 
   return (
     <Grid2
@@ -152,7 +145,7 @@ const Home = () => {
               value={urgencia}
               onChange={(e) => setUrgencia(e.target.value)}
             >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
+              {[1, 2, 3, 4, 5].map((item) => (
                 <MenuItem key={"urgencia-" + item} value={item}>
                   {item}
                 </MenuItem>
@@ -180,6 +173,7 @@ const Home = () => {
                 textDecoration: tarefa.feito === false ? "" : "line-through",
                 maxHeight: "100px",
                 padding: "0 10px",
+                margin: "10px 10px 0 0",
               }}
               spacing={0}
               borderRadius="5px"
@@ -203,11 +197,23 @@ const Home = () => {
               </Grid2>
 
               <Grid2 item sm={5} textAlign={"right"}>
-                <Badge
-                  badgeContent={tarefa.urgencia}
-                  color="primary"
-                  style={{ margin: "0 20px 0 0" }}
-                />
+                <FormControl>
+                  <Select
+                    style={{ borderRadius: "100px" }}
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    size="small"
+                    value={tarefa.urgencia}
+                    onChange={(e) => mudaUrgencia(tarefa.id, e.target.value)}
+                  >
+                    {[1, 2, 3, 4, 5].map((item) => (
+                      <MenuItem key={item} value={item}>
+                        {item}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
                 <IconButton
                   aria-label="delete"
                   style={{
