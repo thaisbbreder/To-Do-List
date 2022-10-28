@@ -18,11 +18,11 @@ import Grid2 from "@mui/material/Unstable_Grid2";
 import { useEffect, useState } from "react";
 
 const Home = () => {
-  // Estados
-  const [tarefas, setTarefas] = useState([]);
-  const [textoTarefa, setTextoTarefa] = useState("");
-  const [textoDescricao, setTextoDescricao] = useState("");
-  const [urgencia, setUrgencia] = useState(1);
+  // Estados: usados para alterar as variáveis. Retorna um valor e uma função para alterar esse valor
+  const [tarefas, setTarefas] = useState([]); //referente a lista
+  const [textoTarefa, setTextoTarefa] = useState(""); // referente ao valor inserido no Nova Tarefa
+  const [textoDescricao, setTextoDescricao] = useState(""); //referente ao valor inserido no Descrição
+  const [urgencia, setUrgencia] = useState(1); // referente ao campo Urgencia
 
   const cores = {
     1: "#F3E6BC",
@@ -42,6 +42,11 @@ const Home = () => {
       feito: false, //false: não feito  true: feito
       urgencia: urgencia,
     };
+   
+      if(!textoTarefa){
+        return alert('A tarefa precisa de um nome para ser adicionada')
+        }
+    
 
     novoArray.push(novaTarefa);
     // TODO: Estudar função de sorting!!!
