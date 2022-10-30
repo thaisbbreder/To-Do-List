@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { useEffect, useState } from "react";
 
@@ -33,7 +34,6 @@ const Home = () => {
   };
 
   const addTarefa = () => {
-    // TODO: Fazer validação para não adicionar tarefas em branco
     const novoArray = [...tarefas];
     const novaTarefa = {
       id: tarefas.length + 1,
@@ -41,12 +41,14 @@ const Home = () => {
       descricao: textoDescricao,
       feito: false, //false: não feito  true: feito
       urgencia: urgencia,
+      edita: false,
     };
-   
-      if(!textoTarefa){
-        return alert('A tarefa precisa de um nome para ser adicionada')
-        }
-    
+
+    //validação para nao adicionar tarefa em branco
+    if (!textoTarefa) {
+      //se não tiver valor
+      return alert("Não é possível adicionar tarefas em branco");
+    }
 
     novoArray.push(novaTarefa);
     // TODO: Estudar função de sorting!!!
@@ -88,6 +90,15 @@ const Home = () => {
     novaUrgencia.sort((a, b) => b.urgencia - a.urgencia);
     setTarefas(novaUrgencia);
   };
+
+  // clicar no Edit > identificar o id da tarefa > enviar o nome/descrição para o form
+  //find: retorna o valor do 1º elemento que passar pelo teste. Parece o filter mas retorna apenas o primeiro elemento que passa pelo teste e não o array inteiro
+  const mudaTarefa = (id) => {
+    const editaTarefa = tarefas.find((tarefa) => {tarefa.id === id});
+    setTextoTarefa(editaTarefa.textoTarefa);
+    setTextoDescricao(editaTarefa.textoDescricao);
+  };
+  //criar um novo estado para receber o valor da tarefa que está sendo alterada no form
 
   return (
     <Grid2
@@ -218,6 +229,16 @@ const Home = () => {
                     ))}
                   </Select>
                 </FormControl>
+
+                <IconButton
+                  aria-label="edit"
+                  style={{
+                    color: "#007e80",
+                  }}
+                  onClick={() => mudaTarefa(tarefa.id)}
+                >
+                  <EditIcon />
+                </IconButton>
 
                 <IconButton
                   aria-label="delete"
