@@ -94,7 +94,7 @@ const Home = () => {
   // clicar no Edit > identificar o id da tarefa > enviar o nome/descrição para o form
   //find: retorna o valor do 1º elemento que passar pelo teste. Parece o filter mas retorna apenas o primeiro elemento que passa pelo teste e não o array inteiro
   const mudaTarefa = (id) => {
-    const editaTarefa = tarefas.find((tarefa) => {tarefa.id === id});
+    const editaTarefa = tarefas.find((tarefa) => tarefa.id === id);
     setTextoTarefa(editaTarefa.textoTarefa);
     setTextoDescricao(editaTarefa.textoDescricao);
   };
@@ -132,25 +132,29 @@ const Home = () => {
         </Grid2>
 
         <Grid2 xs={12} textAlign="center">
-          <TextField
-            id="outlined-basic"
-            label="Nova tarefa"
-            variant="outlined"
-            size="small"
-            fullWidth
-            value={textoTarefa}
-            onChange={(e) => setTextoTarefa(e.target.value)}
-          />
-          <TextField
-            id="outlined-basic"
-            label="Descrição"
-            variant="outlined"
-            size="small"
-            margin="dense"
-            fullWidth
-            value={textoDescricao}
-            onChange={(e) => setTextoDescricao(e.target.value)}
-          />
+          <FormControl fullWidth>
+            <TextField
+              id="outlined-basic"
+              label="Nova tarefa"
+              variant="outlined"
+              size="small"
+              fullWidth
+              value={textoTarefa}
+              onChange={(e) => setTextoTarefa(e.target.value)}
+            />
+          </FormControl>
+          <FormControl fullWidth>
+            <TextField
+              id="outlined-basic"
+              label="Descrição"
+              variant="outlined"
+              size="small"
+              margin="dense"
+              fullWidth
+              value={textoDescricao}
+              onChange={(e) => setTextoDescricao(e.target.value)}
+            />
+          </FormControl>
           <FormControl fullWidth>
             <InputLabel id="demo-simple-select-label">Urgência</InputLabel>
             <Select
