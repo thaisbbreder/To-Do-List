@@ -10,13 +10,19 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Badge,
+  Avatar,
+  AppBar,
+  Container,
+  Box,
+  Toolbar,
 } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { useEffect, useState } from "react";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { auth, provider } from "../services/databaseService";
 
 const Home = () => {
   // Estados: usados para alterar as variáveis. Retorna um valor e uma função para alterar esse valor
@@ -24,6 +30,7 @@ const Home = () => {
   const [textoTarefa, setTextoTarefa] = useState(""); // referente ao valor inserido no Nova Tarefa
   const [textoDescricao, setTextoDescricao] = useState(""); //referente ao valor inserido no Descrição
   const [urgencia, setUrgencia] = useState(1); // referente ao campo Urgencia
+  
 
   const cores = {
     1: "#F3E6BC",
@@ -100,6 +107,15 @@ const Home = () => {
   };
   //criar um novo estado para receber o valor da tarefa que está sendo alterada no form
 
+  useEffect(() => {
+    if (!auth.currentUser) {
+      console.log("Não está logado");
+      //pode enviar para uma página diferente de quando esta logado
+    } else {
+      console.log("Está logado");
+    }
+  }, []);
+
   return (
     <Grid2
       container
@@ -111,6 +127,45 @@ const Home = () => {
         background: "linear-gradient(to bottom right, #007e80 20%, #004853 90%",
       }}
     >
+      
+      <Box sx={{ flexGrow: 1 }}>
+        <AppBar position="static">
+          <Toolbar>
+            {/*<IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              sx={{ mr: 2 }}
+            >
+               <Avatar
+                src={auth.currentUser.photoURL}
+                referrerpolicy="no-referrer"
+              />
+            </IconButton>
+
+            <Typography sx={{ flexGrow: 1 }}>
+            {"Seja bem vindo(a), " + auth.currentUser.displayName + "!"} */}
+             <Typography sx={{ flexGrow: 1 }}>
+            Seja bem vindo(a)
+            </Typography>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() =>
+                signOut(auth).then(() => {
+                  console.log("deslogado");
+                })
+              }
+            >
+              Logout
+            </Button>
+          </Toolbar>
+        </AppBar>
+      </Box>
+
+      {auth.currentUser &&
       <Paper
         style={{
           margin: "auto",
@@ -129,6 +184,9 @@ const Home = () => {
           >
             To-do List
           </Typography>
+          {/*
+         {"To-do List de " + auth.currentUser.displayName}
+          </Typography> */}
         </Grid2>
 
         <Grid2 xs={12} textAlign="center">
@@ -259,6 +317,20 @@ const Home = () => {
           );
         })}
       </Paper>
+}
+      <Button
+        variant="contained"
+        color="secondary"
+        style={{ margin: "10px 0 0 0" }}
+        onClick={() =>
+          signInWithPopup(auth, provider).then((result) => {
+            console.log(result);
+          })
+        } //signInWithRedirection: redireciona sem abrir popup
+      >
+        Login
+      </Button>
+
     </Grid2>
   );
 };
