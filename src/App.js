@@ -1,23 +1,28 @@
 import Home from "./pages/home";
 import "./App.css";
-import { createBrowserRouter, RouterProvider,BrowserRouter as Router, Routes, Route, Form} from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Form,
+} from "react-router-dom";
 
-  const router = createBrowserRouter([
-    {
-      path: "/",
-      element: <Home></Home>,
-    },  
-  ]); 
-  function App() {
-  return (
-   <RouterProvider router={router} /> 
-   ) 
-  }
-  
-  export default App;
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Home></Home>,
+  },
+]);
+function App() {
+  return <RouterProvider router={router} />;
+}
 
+export default App;
 
-  {/* 
+{
+  /* 
 import { app } from './firebase-config';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
@@ -57,6 +62,5 @@ function App() {
           </Routes>
   );
 }
-export default App; */}
-
-
+export default App; */
+}

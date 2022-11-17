@@ -119,8 +119,8 @@ const Home = () => {
     }
   }, []);
 
-// PÁGINA DO LOGIN
-    return (
+  // PÁGINA DO LOGIN
+  return (
     <Grid2
       container
       spacing={4}
@@ -157,7 +157,7 @@ const Home = () => {
           </Typography>
         </Grid2>
 
-        <Grid2 xs={12}>        
+        <Grid2 xs={12}>
           <Button
             variant="contained"
             startIcon={<GoogleIcon />}
@@ -179,9 +179,8 @@ const Home = () => {
         style={{ margin: "auto", width: "50%" }}
       />
     </Grid2>
-  
 
-  /* return (
+    /* return (
     <Grid2
       container
       spacing={4}
