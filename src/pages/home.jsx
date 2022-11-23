@@ -41,9 +41,9 @@ const Home = () => {
         elevation={3}
         style={{
           margin: "auto",
-          maxWidth: "50%",
-          height: "70%",
-          padding: "30px",
+          maxWidth: "60%",
+          height: "40%",
+          padding: "40px",
           textAlign: "center",
         }}
       >
@@ -75,15 +75,7 @@ const Home = () => {
             }
           >
             Login with google
-          </Button>
-          <Button
-            variant="contained"
-            fullWidth
-            style={{ marginTop: "15px" }}
-            onClick={() => signOut(auth)}
-          >
-            Sair
-          </Button>
+          </Button>          
         </Grid2>
       </Paper>
       <img

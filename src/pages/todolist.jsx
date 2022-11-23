@@ -14,6 +14,7 @@ import {
   AppBar,
   Box,
   Toolbar,
+  Switch,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import IconButton from "@mui/material/IconButton";
@@ -22,25 +23,47 @@ import EditIcon from "@mui/icons-material/Edit";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, provider } from "../services/databaseService";
-
 import { useNavigate } from "react-router-dom";
-
 import { onAuthStateChanged } from "firebase/auth";
+import LogoutIcon from "@mui/icons-material/Logout";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 const TodoList = () => {
   const navigate = useNavigate();
   const [tarefas, setTarefas] = useState([]); //referente a lista
   const [textoTarefa, setTextoTarefa] = useState(""); // referente ao valor inserido no Nova Tarefa
   const [textoDescricao, setTextoDescricao] = useState(""); //referente ao valor inserido no Descrição
-  const [editTarefa, setEditTarefa] = useState(0);
+  const [editTarefa, setEditTarefa] = useState("");
   const [urgencia, setUrgencia] = useState(1); // referente ao campo Urgencia
+  const [escuro, setEscuro] = useState(false);
 
+  //dark mode
+  const mudaTema = () => {
+    setEscuro(!escuro);
+  };
+
+  useEffect(() => {
+    localStorage.setItem("escuro", JSON.stringify(escuro));
+  }, [escuro]);
+
+  useEffect(() => {
+    const escuro = JSON.parse(localStorage.getItem("escuro"));
+    if (escuro) {
+      setEscuro(escuro);
+    }
+  }, []);
+
+    //cor de cada item/urgência
   const cores = {
-    1: "#F3E6BC",
-    2: "#F1C972",
-    3: "#F5886B",
-    4: "#72AE95",
-    5: "#71CBC4",
+    1: "#8DBEDA",
+    2: "#67A8CD",
+    3: "#4292BF",
+    4: "#357599",
+    5: "#295872",
   };
 
   const addTarefa = () => {
@@ -54,14 +77,27 @@ const TodoList = () => {
       edita: false,
     };
 
-    //validação para nao adicionar tarefa em branco
+    //validação para não adicionar tarefa em branco
     if (!textoTarefa) {
-      //se não tiver valor
       return alert("Não é possível adicionar tarefas em branco");
     }
 
+    //substituir a tarefa editada
+    if (editTarefa) {
+      const editaTarefa = tarefas.find((tarefa) => tarefa.id === editTarefa);
+      const atualizaTarefa = tarefas.map((item) =>
+        item.id === editaTarefa.id
+          ? (item = { nome: item.nome, textoTarefa })
+          : { id: item.id, textoTarefa: item.textoTarefa }
+      );
+      setTarefas(atualizaTarefa);
+      setEditTarefa(0);
+      setTextoTarefa("");
+      return;
+    }
+
+    //nível de urgência
     novoArray.push(novaTarefa);
-    // TODO: Estudar função de sorting!!!
     novoArray.sort((a, b) => b.urgencia - a.urgencia);
     setTarefas(novoArray);
   };
@@ -106,11 +142,12 @@ const TodoList = () => {
   //find: retorna o valor do 1º elemento que passar pelo teste. Parece o filter mas retorna apenas o primeiro elemento que passa pelo teste e não o array inteiro
   const mudaTarefa = (id) => {
     const editaTarefa = tarefas.find((tarefa) => tarefa.id === id);
-    setTextoTarefa(editaTarefa.textoTarefa);
-    setTextoDescricao(editaTarefa.textoDescricao);
+    setTextoTarefa(editaTarefa.nome);
+    setTextoDescricao(editaTarefa.descricao);
     setEditTarefa(id);
   };
-
+  
+//rota
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -127,17 +164,19 @@ const TodoList = () => {
         display: "grid",
         width: "100vw",
         height: "100vh",
-        background: "linear-gradient(136deg, #B8CAD4 10%, #cdcdcd 80%)",
+        background: escuro
+          ? "radial-gradient(circle at -4.17% 4.55%, #303547 0, #00112c 50%, #000015 100%)"
+          : "linear-gradient(to right, #c4ccd6, #bfc6cf, #bac1c9, #b5bbc2, #b0b6bc)",
       }}
     >
       {auth.currentUser && (
         <Box>
-          <AppBar position="static" sx={{ backgroundColor: "primary.dark" }}>
+          <AppBar position="static" sx={{ backgroundColor: "action.active" }}>
             <Toolbar>
-              /*
               <Avatar
                 src={auth.currentUser?.photoURL}
                 referrerPolicy="no-referrer"
+                size="small"
                 style={{ margin: "25px 10px 5px 0" }}
               />
               <Typography
@@ -145,24 +184,20 @@ const TodoList = () => {
                 fontWeight={"bold"}
                 style={{ margin: "20px 0 5px 0" }}
               >
-                Seja bem vindo! //{" "}
+                {" "}
                 {"Seja bem vindo, " + auth.currentUser?.displayName + "!"}
               </Typography>
-              <Button
-                variant="contained"
-                size="small"
+
+              <IconButton
+                aria-label="Logout"
                 style={{ margin: "20px 10px 5px 0" }}
-                onClick={() =>
-                  signInWithPopup(auth, provider).then((result) => {
-                    console.log(result);
-                  })
-                }
+                onClick={() => mudaTema()}
               >
-                Login
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
+                <Brightness4Icon color="primary" />
+              </IconButton>
+
+              <IconButton
+                aria-label="Logout"
                 style={{ margin: "20px 10px 5px 0" }}
                 onClick={() =>
                   signOut(auth).then(() => {
@@ -170,8 +205,8 @@ const TodoList = () => {
                   })
                 }
               >
-                Logout
-              </Button>
+                <LogoutIcon color="primary" />
+              </IconButton>
             </Toolbar>
           </AppBar>
         </Box>
@@ -185,69 +220,96 @@ const TodoList = () => {
             maxHeight: "80%",
             padding: "30px",
             overflow: "auto",
+            background: escuro ? "#DCDCDC" : "#F2F2F2",
           }}
         >
           <Grid2 xs={12}>
             <Typography
               fontSize={50}
               fontWeight={"bold"}
-              color={"#0093E9"}
               textAlign={"center"}
-              style={{ fontFamily: "Fjalla One" }}
+              style={{
+                fontFamily: "Fjalla One",
+                color: escuro ? "#064C72" : "#0093E9",
+              }}
             >
               {" "}
-              To-do List //{"To-do list de " + auth.currentUser?.displayName}
+              {"To-do list de " + auth.currentUser?.displayName}
             </Typography>
           </Grid2>
 
           <Grid2 xs={12} textAlign="center">
-            <FormControl fullWidth>
-              <TextField
-                id="outlined-basic"
-                label="Nova tarefa"
-                variant="outlined"
-                size="small"
-                fullWidth
-                value={textoTarefa}
-                onChange={(e) => setTextoTarefa(e.target.value)}
-              />
-            </FormControl>
-            <FormControl fullWidth>
-              <TextField
-                id="outlined-basic"
-                label="Descrição"
-                variant="outlined"
-                size="small"
-                fullWidth
-                style={{ margin: "10px 0 10px 0" }}
-                value={textoDescricao}
-                onChange={(e) => setTextoDescricao(e.target.value)}
-              />
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-label">Urgência</InputLabel>
-              <Select
-                id="demo-simple-select"
-                label="Urgência"
-                size="small"
-                value={urgencia}
-                onChange={(e) => setUrgencia(e.target.value)}
+            <Accordion style={{ background: escuro ? "#DCDCDC" : "#F2F2F2" }}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+                style={{ background: escuro ? "#DCDCDC" : "#F2F2F2" }}
               >
-                {[1, 2, 3, 4, 5].map((item) => (
-                  <MenuItem key={"urgencia-" + item} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Button
-              variant="contained"
-              //color="secondary"
-              style={{ margin: "10px 0 0 0" }}
-              onClick={() => addTarefa()}
-            >
-              Adicionar
-            </Button>
+                <Typography
+                  style={{
+                    fontFamily: "Fjalla One",
+                    fontWeight: "bold",
+                    color: escuro ? "#064C72" : "#0093E9",
+                  }}
+                >
+                  Adicionar nova tarefa
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails
+                style={{ background: escuro ? "#DCDCDC" : "#F2F2F2" }}
+              >
+                <FormControl fullWidth style={{ color: "#0093E9" }}>
+                  <TextField
+                    id="outlined-basic"
+                    label="Nova tarefa"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    value={textoTarefa}
+                    onChange={(e) => setTextoTarefa(e.target.value)}
+                  />
+                </FormControl>
+                <FormControl fullWidth>
+                  <TextField
+                    id="outlined-basic"
+                    label="Descrição"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    style={{ margin: "10px 0 10px 0" }}
+                    value={textoDescricao}
+                    onChange={(e) => setTextoDescricao(e.target.value)}
+                  />
+                </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">
+                    Urgência
+                  </InputLabel>
+                  <Select
+                    id="demo-simple-select"
+                    label="Urgência"
+                    size="small"
+                    value={urgencia}
+                    onChange={(e) => setUrgencia(e.target.value)}
+                  >
+                    {[1, 2, 3, 4, 5].map((item) => (
+                      <MenuItem key={"urgencia-" + item} value={item}>
+                        {item}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button
+                  variant="contained"
+                  //color="secondary"
+                  style={{ margin: "10px 0 0 0" }}
+                  onClick={() => addTarefa()}
+                >
+                  {editTarefa ? "Editar" : "Adicionar"}
+                </Button>
+              </AccordionDetails>
+            </Accordion>
           </Grid2>
 
           {tarefas.map((tarefa) => {
