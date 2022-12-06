@@ -14,7 +14,6 @@ import {
   AppBar,
   Box,
   Toolbar,
-  Switch,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import IconButton from "@mui/material/IconButton";
@@ -22,7 +21,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { signInWithPopup, signOut } from "firebase/auth";
-import { auth, provider } from "../services/databaseService";
+import { auth, db, provider } from "../services/databaseService";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -31,33 +30,43 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  updateDoc,
+} from "firebase/firestore";
 
 const TodoList = () => {
   const navigate = useNavigate();
   const [tarefas, setTarefas] = useState([]); //referente a lista
   const [textoTarefa, setTextoTarefa] = useState(""); // referente ao valor inserido no Nova Tarefa
   const [textoDescricao, setTextoDescricao] = useState(""); //referente ao valor inserido no Descrição
-  const [editTarefa, setEditTarefa] = useState("");
   const [urgencia, setUrgencia] = useState(1); // referente ao campo Urgencia
   const [escuro, setEscuro] = useState(false);
+  const [editTarefa, setEditTarefa] = useState("");
+  const [novoNome, setNovoNome] = useState("");
+
+  //lê as tarefas salvas do firestore e envia para o to-do list
+  useEffect(() => {
+    const fetchData = async () => {
+      const novaTarefa = [];
+      const querySnapshot = await getDocs(collection(db, "todolist"));
+      querySnapshot.forEach((doc) => {
+        novaTarefa.push({ ...doc.data(), id: doc.id });
+      });
+      setTarefas(novaTarefa);
+    };
+    fetchData();
+  }, []);
 
   //dark mode
   const mudaTema = () => {
     setEscuro(!escuro);
   };
 
-  useEffect(() => {
-    localStorage.setItem("escuro", JSON.stringify(escuro));
-  }, [escuro]);
-
-  useEffect(() => {
-    const escuro = JSON.parse(localStorage.getItem("escuro"));
-    if (escuro) {
-      setEscuro(escuro);
-    }
-  }, []);
-
-    //cor de cada item/urgência
   const cores = {
     1: "#8DBEDA",
     2: "#67A8CD",
@@ -76,24 +85,12 @@ const TodoList = () => {
       urgencia: urgencia,
       edita: false,
     };
+    setTextoTarefa("");
+    setTextoDescricao("");
 
     //validação para não adicionar tarefa em branco
     if (!textoTarefa) {
       return alert("Não é possível adicionar tarefas em branco");
-    }
-
-    //substituir a tarefa editada
-    if (editTarefa) {
-      const editaTarefa = tarefas.find((tarefa) => tarefa.id === editTarefa);
-      const atualizaTarefa = tarefas.map((item) =>
-        item.id === editaTarefa.id
-          ? (item = { nome: item.nome, textoTarefa })
-          : { id: item.id, textoTarefa: item.textoTarefa }
-      );
-      setTarefas(atualizaTarefa);
-      setEditTarefa(0);
-      setTextoTarefa("");
-      return;
     }
 
     //nível de urgência
@@ -102,12 +99,46 @@ const TodoList = () => {
     setTarefas(novoArray);
   };
 
+  //CORRIGIR: a primeira tarefa adicionada não está sendo enviada para o firestore
+  const salvaTarefaFirestore = async () => {
+    try {
+      tarefas.forEach(async (tarefa) => {
+        const docRef = await addDoc(collection(db, "todolist"), tarefa);
+        console.log("Document written with ID: ", docRef.id);
+      });
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+  };
+
+  //salvar no firestore e adicionar na todolist clicando no mesmo botão
+  const insereTarefas = () => {
+    salvaTarefaFirestore();
+    addTarefa();
+  };
+
+  const deletaTarefaFirestore = async (collectionId) => {
+    const tarefaRef = doc(db, "todolist", collectionId);
+    await deleteDoc(tarefaRef);
+  };
+
   const deletaTarefa = (id) => {
     const novaLista = tarefas.filter((tarefa) => {
       return tarefa.id !== id;
     });
     setTarefas(novaLista);
   };
+
+  {
+    /*    const atualizaDeleta = () => {
+    deletaTarefaFirestore();
+    deletaTarefa();
+  };
+
+ {/*  ERRO: index.esm2017.js:1032 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'indexOf')
+    at rt.fromString
+*/
+  }
 
   const mudaEstado = (id) => {
     setTarefas((estadoAtual) => {
@@ -137,17 +168,32 @@ const TodoList = () => {
     setTarefas(novaUrgencia);
   };
 
-  // clicar no Edit > identificar o id da tarefa > enviar o nome/descrição para o form
-  //criar um novo estado para receber o valor da tarefa que está sendo alterada no form
-  //find: retorna o valor do 1º elemento que passar pelo teste. Parece o filter mas retorna apenas o primeiro elemento que passa pelo teste e não o array inteiro
-  const mudaTarefa = (id) => {
+  //envia o nome/descriçao da tarefa para o formulario
+  const editaFormulario = (id) => {
     const editaTarefa = tarefas.find((tarefa) => tarefa.id === id);
     setTextoTarefa(editaTarefa.nome);
     setTextoDescricao(editaTarefa.descricao);
-    setEditTarefa(id);
   };
-  
-//rota
+
+  const atualizaTarefa = async (collectionId) => {
+    const tarefaEditada = doc(db, "todolist", collectionId);
+    console.log(tarefaEditada);
+  };
+
+  const editaTarefa = (id) => {
+    const editaNome = tarefas.map((tarefa) => {
+      if (tarefa.id === id) {
+        tarefa.nome = textoTarefa;
+        tarefa.descricao = textoDescricao;
+      }
+      return tarefa;
+    });
+    setTarefas(editaNome);
+    setTextoTarefa("");
+    setTextoDescricao("");
+  };
+
+  //rota
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -302,11 +348,10 @@ const TodoList = () => {
                 </FormControl>
                 <Button
                   variant="contained"
-                  //color="secondary"
                   style={{ margin: "10px 0 0 0" }}
-                  onClick={() => addTarefa()}
+                  onClick={() => insereTarefas()}
                 >
-                  {editTarefa ? "Editar" : "Adicionar"}
+                  Adicionar
                 </Button>
               </AccordionDetails>
             </Accordion>
@@ -344,6 +389,7 @@ const TodoList = () => {
                     {tarefa.nome}
                   </Typography>
                   <Typography p={"2px 0 10px"}>{tarefa.descricao}</Typography>
+                  {tarefa.id}
                 </Grid2>
 
                 <Grid2 item sm={5} textAlign={"right"}>
@@ -366,10 +412,27 @@ const TodoList = () => {
 
                   <IconButton
                     aria-label="edit"
-                    onClick={() => mudaTarefa(tarefa.id)}
+                    onClick={() => editaFormulario(tarefa.id)}
                   >
                     <EditIcon />
                   </IconButton>
+                  <Button
+                    variant="contained"
+                    //color="secondary"
+                    style={{ margin: "10px 0 0 0" }}
+                    onClick={() => editaTarefa(tarefa.id)}
+                  >
+                    Editar
+                  </Button>
+
+                  <Button
+                    variant="contained"
+                    //color="secondary"
+                    style={{ margin: "10px 0 0 0" }}
+                    onClick={() => atualizaTarefa(tarefa.id)}
+                  >
+                    salva
+                  </Button>
 
                   <IconButton
                     aria-label="delete"
@@ -377,6 +440,14 @@ const TodoList = () => {
                   >
                     <DeleteIcon />
                   </IconButton>
+                  <Button
+                    variant="contained"
+                    //color="secondary"
+                    style={{ margin: "10px 0 0 0" }}
+                    onClick={() => deletaTarefaFirestore(tarefa.id)}
+                  >
+                    Deleta Firestore
+                  </Button>
                 </Grid2>
                 <Divider />
               </Grid2>

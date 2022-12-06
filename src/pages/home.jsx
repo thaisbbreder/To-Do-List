@@ -13,6 +13,8 @@ const Home = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
+     
+  
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
