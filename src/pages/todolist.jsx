@@ -15,7 +15,7 @@ import {
   Box,
   Toolbar,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -46,21 +46,6 @@ const TodoList = () => {
   const [textoDescricao, setTextoDescricao] = useState(""); //referente ao valor inserido no Descrição
   const [urgencia, setUrgencia] = useState(1); // referente ao campo Urgencia
   const [escuro, setEscuro] = useState(false);
-  const [editTarefa, setEditTarefa] = useState("");
-  const [novoNome, setNovoNome] = useState("");
-
-  //lê as tarefas salvas do firestore e envia para o to-do list
-  useEffect(() => {
-    const fetchData = async () => {
-      const novaTarefa = [];
-      const querySnapshot = await getDocs(collection(db, "todolist"));
-      querySnapshot.forEach((doc) => {
-        novaTarefa.push({ ...doc.data(), id: doc.id });
-      });
-      setTarefas(novaTarefa);
-    };
-    fetchData();
-  }, []);
 
   //dark mode
   const mudaTema = () => {
@@ -97,10 +82,8 @@ const TodoList = () => {
     novoArray.push(novaTarefa);
     novoArray.sort((a, b) => b.urgencia - a.urgencia);
     setTarefas(novoArray);
-  };
 
-  //CORRIGIR: a primeira tarefa adicionada não está sendo enviada para o firestore
-  const salvaTarefaFirestore = async () => {
+    //não adiciona a primeira tarefa
     try {
       tarefas.forEach(async (tarefa) => {
         const docRef = await addDoc(collection(db, "todolist"), tarefa);
@@ -111,35 +94,52 @@ const TodoList = () => {
     }
   };
 
-  //salvar no firestore e adicionar na todolist clicando no mesmo botão
-  const insereTarefas = () => {
-    salvaTarefaFirestore();
-    addTarefa();
+  //lê as tarefas salvas do firestore e envia para o to-do list
+  useEffect(() => {
+    const fetchData = async () => {
+      const novaTarefa = [];
+      const querySnapshot = await getDocs(collection(db, "todolist"));
+      querySnapshot.forEach((doc) => {
+        novaTarefa.push({ ...doc.data(), id: doc.id });
+      });
+      setTarefas(novaTarefa);
+    };
+    fetchData();
+  }, []);
+
+  //envia o nome/descriçao da tarefa para o formulario
+  const editaFormulario = (collectionId) => {
+    const editaTarefa = tarefas.find((tarefa) => tarefa.id === collectionId);
+    setTextoTarefa(editaTarefa.nome);
+    setTextoDescricao(editaTarefa.descricao);
   };
 
-  const deletaTarefaFirestore = async (collectionId) => {
+  //salva no firebase
+  const atualizaTarefa = async (collectionId) => {
     const tarefaRef = doc(db, "todolist", collectionId);
-    await deleteDoc(tarefaRef);
-  };
-
-  const deletaTarefa = (id) => {
-    const novaLista = tarefas.filter((tarefa) => {
-      return tarefa.id !== id;
+    await updateDoc(tarefaRef, {
+      nome: textoTarefa,
+      descricao: textoDescricao,
+      urgencia: urgencia,
     });
-    setTarefas(novaLista);
   };
 
-  {
-    /*    const atualizaDeleta = () => {
-    deletaTarefaFirestore();
-    deletaTarefa();
+  //substitui na todolist
+  const editaTarefa = (collectionId) => {
+    const editaNome = tarefas.map((tarefa) => {
+      if (tarefa.id === collectionId) {
+        tarefa.nome = textoTarefa;
+        tarefa.descricao = textoDescricao;
+        tarefa.urgencia = urgencia;
+      }
+      return tarefa;
+    });
+    setTarefas(editaNome);
+    setTextoTarefa("");
+    setTextoDescricao("");
   };
 
- {/*  ERRO: index.esm2017.js:1032 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'indexOf')
-    at rt.fromString
-*/
-  }
-
+  //check
   const mudaEstado = (id) => {
     setTarefas((estadoAtual) => {
       const novoEstado = [...estadoAtual];
@@ -168,29 +168,13 @@ const TodoList = () => {
     setTarefas(novaUrgencia);
   };
 
-  //envia o nome/descriçao da tarefa para o formulario
-  const editaFormulario = (id) => {
-    const editaTarefa = tarefas.find((tarefa) => tarefa.id === id);
-    setTextoTarefa(editaTarefa.nome);
-    setTextoDescricao(editaTarefa.descricao);
-  };
-
-  const atualizaTarefa = async (collectionId) => {
-    const tarefaEditada = doc(db, "todolist", collectionId);
-    console.log(tarefaEditada);
-  };
-
-  const editaTarefa = (id) => {
-    const editaNome = tarefas.map((tarefa) => {
-      if (tarefa.id === id) {
-        tarefa.nome = textoTarefa;
-        tarefa.descricao = textoDescricao;
-      }
-      return tarefa;
-    });
-    setTarefas(editaNome);
-    setTextoTarefa("");
-    setTextoDescricao("");
+  const deletaTarefa = async (collectionId) => {
+    const tarefaRef = doc(db, "todolist", collectionId);
+    await deleteDoc(tarefaRef);
+    const listaAtualizada = tarefas.filter(
+      (tarefa) => tarefa.id !== collectionId
+    );
+    setTarefas(listaAtualizada);
   };
 
   //rota
@@ -349,7 +333,7 @@ const TodoList = () => {
                 <Button
                   variant="contained"
                   style={{ margin: "10px 0 0 0" }}
-                  onClick={() => insereTarefas()}
+                  onClick={() => addTarefa()}
                 >
                   Adicionar
                 </Button>
@@ -389,7 +373,6 @@ const TodoList = () => {
                     {tarefa.nome}
                   </Typography>
                   <Typography p={"2px 0 10px"}>{tarefa.descricao}</Typography>
-                  {tarefa.id}
                 </Grid2>
 
                 <Grid2 item sm={5} textAlign={"right"}>
@@ -422,16 +405,16 @@ const TodoList = () => {
                     style={{ margin: "10px 0 0 0" }}
                     onClick={() => editaTarefa(tarefa.id)}
                   >
-                    Editar
+                    Substituir
                   </Button>
 
                   <Button
                     variant="contained"
                     //color="secondary"
                     style={{ margin: "10px 0 0 0" }}
-                    onClick={() => atualizaTarefa(tarefa.id)}
+                    onClick={() => atualizaTarefa(tarefa.nome)}
                   >
-                    salva
+                    Salvar
                   </Button>
 
                   <IconButton
@@ -440,14 +423,6 @@ const TodoList = () => {
                   >
                     <DeleteIcon />
                   </IconButton>
-                  <Button
-                    variant="contained"
-                    //color="secondary"
-                    style={{ margin: "10px 0 0 0" }}
-                    onClick={() => deletaTarefaFirestore(tarefa.id)}
-                  >
-                    Deleta Firestore
-                  </Button>
                 </Grid2>
                 <Divider />
               </Grid2>
