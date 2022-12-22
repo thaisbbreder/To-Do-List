@@ -11,18 +11,17 @@ import {
   Select,
   MenuItem,
   Avatar,
-  AppBar,
   Box,
   Toolbar,
 } from "@mui/material";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import { signInWithPopup, signOut } from "firebase/auth";
-import { auth, db, provider } from "../services/databaseService";
+import { signOut } from "firebase/auth";
+import { auth, db } from "../services/databaseService";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -34,14 +33,9 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   addDoc,
   collection,
-  CollectionReference,
   deleteDoc,
   doc,
-  documentId,
-  DocumentReference,
-  getDoc,
   getDocs,
-  setDoc,
   updateDoc,
 } from "firebase/firestore";
 
@@ -86,12 +80,13 @@ const TodoList = () => {
       feito: false,
       urgencia: urgencia,
       edita: false,
-      uid: "",
+      userId: auth.currentUser.uid,
     };
 
     try {
       const docRef = addDoc(collection(db, "todolist"), novaTarefa);
       console.log("Document written with ID: ", docRef.id);
+      setTarefas();
     } catch (e) {
       console.error("Error adding document: ", e);
     }
@@ -109,7 +104,7 @@ const TodoList = () => {
     setTarefas(novoArray);
   };
 
-  //lê as tarefas salvas do firestore e envia para o to-do list
+  //lê as tarefas do firestore
   useEffect(() => {
     const fetchData = async () => {
       const novaTarefa = [];
@@ -145,10 +140,10 @@ const TodoList = () => {
   };
 
   //salva no firebase
-  const atualizaTarefa = async () => {
-    const tarefaRef = doc(db, "todolist");
+  const atualizaTarefa = async (id) => {
+    const tarefaRef = doc(db, "todolist", id);
     await updateDoc(tarefaRef, {
-      nome: true,
+      nome: textoTarefa,
       descricao: textoDescricao,
       urgencia: urgencia,
     });
@@ -183,12 +178,10 @@ const TodoList = () => {
     setTarefas(novaUrgencia);
   };
 
-  const deletaTarefa = async (collectionId) => {
-    const tarefaRef = doc(db, "todolist", collectionId);
+  const deletaTarefa = async (id) => {
+    const tarefaRef = doc(db, "todolist", id);
     await deleteDoc(tarefaRef);
-    const listaAtualizada = tarefas.filter(
-      (tarefa) => tarefa.id !== collectionId
-    );
+    const listaAtualizada = tarefas.filter((tarefa) => tarefa.id !== id);
     setTarefas(listaAtualizada);
   };
 
@@ -244,19 +237,6 @@ const TodoList = () => {
               src={auth.currentUser?.photoURL}
               style={{ margin: "auto" }}
             />
-
-            {/*}   <Typography
-            fontWeight={"bold"}
-            fontSize={"20px"}
-            style={{
-              fontFamily: "Fjalla One",
-              marginTop: "20px",
-              color: darkMode ? "#90B62B" : "#393939",
-            }}
-          >
-            {" "}
-            {"Seja bem vindo, " + auth.currentUser?.displayName + "!"}
-          </Typography> */}
           </Box>
         </Grid2>
       )}
@@ -422,7 +402,7 @@ const TodoList = () => {
                     >
                       <EditIcon />
                     </IconButton>
-                    {/*  <Button
+                    <Button
                       variant="contained"
                       //color="secondary"
                       style={{ margin: "10px 0 0 0" }}
@@ -439,7 +419,6 @@ const TodoList = () => {
                     >
                       Salvar
                     </Button>
-                  */}
 
                     <IconButton
                       aria-label="delete"
