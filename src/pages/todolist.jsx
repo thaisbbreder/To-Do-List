@@ -22,7 +22,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../services/databaseService";
-import { useNavigate } from "react-router-dom";
+import { Await, useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -46,6 +46,7 @@ const TodoList = () => {
   const [textoDescricao, setTextoDescricao] = useState(""); //referente ao valor inserido no Descrição
   const [urgencia, setUrgencia] = useState(1); // referente ao campo Urgencia
   const [darkMode, setDarkMode] = useState(false);
+  const [input, setInput] = useState("Adicionar");
 
   //dark mode
   const mudaTema = () => {
@@ -71,10 +72,10 @@ const TodoList = () => {
     5: darkMode ? "#A7C2AF" : "#BDDDC7",
   };
 
-  const addTarefa = () => {
+  const addTarefa = async () => {
     const novoArray = [...tarefas];
+
     const novaTarefa = {
-      id: tarefas.length + 1,
       nome: textoTarefa,
       descricao: textoDescricao,
       feito: false,
@@ -84,20 +85,19 @@ const TodoList = () => {
     };
 
     try {
-      const docRef = addDoc(collection(db, "todolist"), novaTarefa);
+      const docRef = await addDoc(collection(db, "todolist"), novaTarefa);
       console.log("Document written with ID: ", docRef.id);
+      novaTarefa.id = docRef.id;
       setTarefas();
     } catch (e) {
       console.error("Error adding document: ", e);
     }
-
     setTextoTarefa("");
     setTextoDescricao("");
 
     if (!textoTarefa) {
       return alert("Não é possível adicionar tarefas em branco");
     }
-
     //nível de urgência
     novoArray.push(novaTarefa);
     novoArray.sort((a, b) => b.urgencia - a.urgencia);
@@ -135,18 +135,19 @@ const TodoList = () => {
       return tarefa;
     });
     setTarefas(editaNome);
-    setTextoTarefa("");
-    setTextoDescricao("");
   };
 
   //salva no firebase
-  const atualizaTarefa = async (id) => {
+  const atualizaTarefaFirestore = async (id) => {
+    console.log(id);
     const tarefaRef = doc(db, "todolist", id);
     await updateDoc(tarefaRef, {
       nome: textoTarefa,
       descricao: textoDescricao,
       urgencia: urgencia,
     });
+    setTextoTarefa("");
+    setTextoDescricao("");
   };
 
   //check
@@ -324,7 +325,7 @@ const TodoList = () => {
                       onChange={(e) => setUrgencia(e.target.value)}
                     >
                       {[1, 2, 3, 4, 5].map((item) => (
-                        <MenuItem key={"urgencia-" + item} value={item}>
+                        <MenuItem key={"urgencia" + item} value={item}>
                           {item}
                         </MenuItem>
                       ))}
@@ -336,7 +337,7 @@ const TodoList = () => {
                     style={{ margin: "10px 0 0 0", fontFamily: "Fjalla One" }}
                     onClick={() => addTarefa()}
                   >
-                    Adicionar
+                    adiciona
                   </Button>
                 </AccordionDetails>
               </Accordion>
@@ -413,9 +414,8 @@ const TodoList = () => {
 
                     <Button
                       variant="contained"
-                      //color="secondary"
                       style={{ margin: "10px 0 0 0" }}
-                      onClick={() => atualizaTarefa()}
+                      onClick={() => atualizaTarefaFirestore(tarefa.id)}
                     >
                       Salvar
                     </Button>
