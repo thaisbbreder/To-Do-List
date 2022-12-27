@@ -18,6 +18,7 @@ const Home = () => {
     onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       if (user) {
+        console.log(auth.currentUser.uid)
         navigate("/todolist");
       }
     });
@@ -29,29 +30,29 @@ const Home = () => {
   return (
     <Grid2
       container
-      spacing={4}
+      spacing={5}
       textAlign={"center"}
       alignItems={"center"}
       style={{
         display: "grid-inline",
         height: "100vh",
-        //width: "100vw",
         background: "#EAF3DB",
       }}
     >
       <Grid2 item sm={12}>
         <Box>
-          <AppBar style={{ backgroundColor: "#AFD83D" }}>
+          <AppBar style={{ backgroundColor: "#AFD83D",height: "15vh", }}>
             <Typography
-              fontSize={40}
+              fontSize={60}
               fontWeight={"bold"}
               color={"black"}
               style={{
                 fontFamily: "Fjalla One",
                 padding: "2px",
+                margin:"auto"
               }}
             >
-              • To-do list •
+              • TO-DO LIST •
             </Typography>
           </AppBar>
         </Box>
@@ -81,7 +82,7 @@ const Home = () => {
             marginBottom: "5%",
           }}
         >
-          Com a To-do List fica fácil planejar o seu dia a dia por meio de
+          Com a To-do List fica fácil e rápido planejar o seu dia a dia por meio de
           listas de afazeres online.
         </Typography>
 

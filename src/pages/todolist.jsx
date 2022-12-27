@@ -22,7 +22,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../services/databaseService";
-import { Await, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -36,17 +36,19 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
 const TodoList = () => {
   const navigate = useNavigate();
-  const [tarefas, setTarefas] = useState([]); //referente a lista
-  const [textoTarefa, setTextoTarefa] = useState(""); // referente ao valor inserido no Nova Tarefa
-  const [textoDescricao, setTextoDescricao] = useState(""); //referente ao valor inserido no Descrição
-  const [urgencia, setUrgencia] = useState(1); // referente ao campo Urgencia
+  const [tarefas, setTarefas] = useState([]);
+  const [textoTarefa, setTextoTarefa] = useState("");
+  const [textoDescricao, setTextoDescricao] = useState("");
+  const [urgencia, setUrgencia] = useState(1);
   const [darkMode, setDarkMode] = useState(false);
-  const [input, setInput] = useState("Adicionar");
+  const [tarefa, setTarefa] = useState();
 
   //dark mode
   const mudaTema = () => {
@@ -72,9 +74,17 @@ const TodoList = () => {
     5: darkMode ? "#A7C2AF" : "#BDDDC7",
   };
 
+  //adicionar ou editar
+  const trataTarefas = () => {
+    if (tarefa) {
+      editaTarefa(tarefa.id);
+    } else {
+      addTarefa();
+    }
+  };
+
   const addTarefa = async () => {
     const novoArray = [...tarefas];
-
     const novaTarefa = {
       nome: textoTarefa,
       descricao: textoDescricao,
@@ -98,6 +108,7 @@ const TodoList = () => {
     if (!textoTarefa) {
       return alert("Não é possível adicionar tarefas em branco");
     }
+
     //nível de urgência
     novoArray.push(novaTarefa);
     novoArray.sort((a, b) => b.urgencia - a.urgencia);
@@ -106,26 +117,39 @@ const TodoList = () => {
 
   //lê as tarefas do firestore
   useEffect(() => {
-    const fetchData = async () => {
-      const novaTarefa = [];
-      const querySnapshot = await getDocs(collection(db, "todolist"));
-      querySnapshot.forEach((doc) => {
-        novaTarefa.push({ ...doc.data(), id: doc.id });
-      });
-      setTarefas(novaTarefa);
-    };
     fetchData();
   }, []);
+
+  const fetchData = async () => {
+    const novaTarefa = [];
+    const q = query(
+      collection(db, "todolist"),
+      where("userId", "==", auth.currentUser.uid)
+    );
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      novaTarefa.push({ ...doc.data(), id: doc.id });
+    });
+    setTarefas(novaTarefa);
+  };
 
   //envia o nome/descriçao da tarefa para o formulario
   const editaFormulario = (id) => {
     const editaTarefa = tarefas.find((tarefa) => tarefa.id === id);
+    setTarefa(editaTarefa);
     setTextoTarefa(editaTarefa.nome);
     setTextoDescricao(editaTarefa.descricao);
   };
 
-  //substitui na todolist
-  const editaTarefa = (id) => {
+  //atualiza a tarefa editada na lista e salva no firestore
+  const editaTarefa = async (id) => {
+    const tarefaRef = doc(db, "todolist", id);
+    await updateDoc(tarefaRef, {
+      nome: textoTarefa,
+      descricao: textoDescricao,
+      urgencia: urgencia,
+    });
+
     const editaNome = tarefas.map((tarefa) => {
       if (tarefa.id === id) {
         tarefa.nome = textoTarefa;
@@ -134,23 +158,13 @@ const TodoList = () => {
       }
       return tarefa;
     });
+    setTarefa(null);
     setTarefas(editaNome);
-  };
-
-  //salva no firebase
-  const atualizaTarefaFirestore = async (id) => {
-    console.log(id);
-    const tarefaRef = doc(db, "todolist", id);
-    await updateDoc(tarefaRef, {
-      nome: textoTarefa,
-      descricao: textoDescricao,
-      urgencia: urgencia,
-    });
     setTextoTarefa("");
     setTextoDescricao("");
   };
 
-  //check
+  //check na tarefa feita
   const mudaEstado = (id) => {
     setTarefas((estadoAtual) => {
       const novoEstado = [...estadoAtual];
@@ -186,7 +200,6 @@ const TodoList = () => {
     setTarefas(listaAtualizada);
   };
 
-  //rota
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -203,21 +216,23 @@ const TodoList = () => {
         height: "100vh",
         width: "100vw",
         overflow: "auto",
-        background: darkMode ? "#040404" : "#EAF3DB",
+        background: darkMode ? "#080808" : "#EAF3DB",
       }}
     >
       {auth.currentUser && (
-        <Grid2 item sm={12}>
+        <Grid2 sm={12}>
           <Box
             style={{
-              height: "20vh",
-              backgroundColor: darkMode ? "#131522" : "#A7C654",
+              height: "230px",
+              backgroundColor: darkMode ? "#040404" : "#A7C654",
+              
             }}
           >
-            <Toolbar>
+            <Grid2 item sm={1}>
+              <Toolbar>
               <IconButton
                 aria-label="Dark Mode"
-                style={{ marginLeft: "95%" }}
+                style={{ marginLeft: "92%" }}
                 onClick={() => mudaTema()}
               >
                 <Brightness4Icon color="success" />
@@ -232,7 +247,21 @@ const TodoList = () => {
               >
                 <LogoutIcon color="success" />
               </IconButton>
-            </Toolbar>
+              </Toolbar>
+              </Grid2>
+            <Typography
+                fontSize={50}
+                fontWeight={"bold"}
+                textAlign={"center"}
+                style={{
+                  fontFamily: "Fjalla One",
+                  color: darkMode ? "#EAF3DB" : "#393939",
+                  marginBottom: "20px"
+                }}
+              >
+                {"To-do List de " + auth.currentUser?.displayName}
+              </Typography>
+              
             <Avatar
               sx={{ width: 100, height: 100 }}
               src={auth.currentUser?.photoURL}
@@ -253,17 +282,7 @@ const TodoList = () => {
             }}
           >
             <Grid2 xs={12} textAlign="center">
-              <Typography
-                fontSize={50}
-                fontWeight={"bold"}
-                textAlign={"center"}
-                style={{
-                  fontFamily: "Fjalla One",
-                  color: darkMode ? "#EAF3DB" : "#393939",
-                }}
-              >
-                {"To-do List de " + auth.currentUser?.displayName}
-              </Typography>
+           
               <Accordion
                 style={{
                   margin: "2% 20%",
@@ -284,7 +303,7 @@ const TodoList = () => {
                       color: darkMode ? "#EAF3DB" : "#373933",
                     }}
                   >
-                    Adicionar nova tarefa
+                    {tarefa ? "Editar tarefa" : "Adicionar nova tarefa"} 
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails
@@ -335,9 +354,9 @@ const TodoList = () => {
                     variant="contained"
                     color="success"
                     style={{ margin: "10px 0 0 0", fontFamily: "Fjalla One" }}
-                    onClick={() => addTarefa()}
+                    onClick={() => trataTarefas()}
                   >
-                    adiciona
+                    {tarefa ? "Editar tarefa" : "Adicionar"}
                   </Button>
                 </AccordionDetails>
               </Accordion>
@@ -403,23 +422,6 @@ const TodoList = () => {
                     >
                       <EditIcon />
                     </IconButton>
-                    <Button
-                      variant="contained"
-                      //color="secondary"
-                      style={{ margin: "10px 0 0 0" }}
-                      onClick={() => editaTarefa(tarefa.id)}
-                    >
-                      Substituir
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      style={{ margin: "10px 0 0 0" }}
-                      onClick={() => atualizaTarefaFirestore(tarefa.id)}
-                    >
-                      Salvar
-                    </Button>
-
                     <IconButton
                       aria-label="delete"
                       onClick={() => deletaTarefa(tarefa.id)}
