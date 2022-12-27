@@ -1,158 +1,104 @@
-import {
-  Paper,
-  Typography,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  TextField,
-  Divider,
-} from "@mui/material";
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-
+import { Paper, Typography, Button, Toolbar, AppBar } from "@mui/material";
+import GoogleIcon from "@mui/icons-material/Google";
+import Grid2 from "@mui/material/Unstable_Grid2";
 import { useEffect, useState } from "react";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { auth, db, provider } from "../services/databaseService";
+import { onAuthStateChanged } from "firebase/auth";
+import original from ".//original.png";
+import { useNavigate } from "react-router-dom";
+import { Box } from "@mui/system";
 
 const Home = () => {
-  const [tarefas, setTarefas] = useState([
-    {
-      id: 1,
-      nome: "Tarefa 1",
-      descricao: "Descrição da tarefa 1",
-      feito: false,
-    },
-  ]);
+  // Estados: usados para alterar as variáveis. Retorna um valor e uma função para alterar esse valor
+  const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
 
-  const[textoTarefa, setTextoTarefa] = useState("") //variavel para armazenar o valor do input
-  
-  const addTarefa = () => {
-    const  novoArray = [...tarefas];
-    const novaTarefa= {
-      id:tarefas.length + 1,
-      nome: textoTarefa,
-      descricao:textoDescricao,
-      feito: false,
-    }
-    novoArray.push(novaTarefa);
-    setTarefas(novoArray)
-    }
-  
-    const[textoDescricao, setTextoDescricao] = useState("") //variavel para armazenar o valor do input
-  
-    const addDescricao = () => {
-    const  itemDescricao = [...tarefas.descricao];
-    const novaDescricao= {
-      id: tarefas.length + 1,
-      nome: textoTarefa,
-      descricao: textoDescricao,
-      feito: false,
-    }
-    itemDescricao.push(novaDescricao); 
-    setTarefas(itemDescricao)
-    }
-    
-    const deletaTarefa = (id) => {
-      const novaLista = tarefas.filter((tarefa) => {
-      
-      return tarefa.id !== id
-      })
-        setTarefas(novaLista)
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      if (user) {
+        console.log(auth.currentUser.uid)
+        navigate("/todolist");
       }
-       
-  //quando eu clico no checkbox, o estado atual da tarefa é alterado para um novo estado (feito: true/false) 
-  //e o código é refatorado/refeito cada vez que o estado é alterado, 
-  //fazendo com que seja possivel marcar o checkbox de cada uma das tarefas e não perder o que foi feito no estado anterior
-  const mudaEstado = (id) => {
-    setTarefas((estadoAtual) => {
-      const novoEstado = [...estadoAtual];
-      //spread operator: está fazendo uma cópia do estado atual 
-      //ao clicar em algum checkbox, o filter vai percorrer o array até identificar o id referente a essa tarefa e retornar um valor baseado na condição
-      novoEstado.filter((tarefa) => {
-    if (tarefa.id === id) {
-          tarefa.feito = !tarefa.feito;   //se o "feito" estiver recebendo false, agora ele irá receber o contrário (true)
-          return tarefa;
-        } else {
-          return tarefa;
-        }
-      });
-      return novoEstado;
     });
-  };
+  }, []);
 
-   return (
-    <div
+  console.log(currentUser);
+
+  // PÁGINA DO LOGIN
+  return (
+    <Grid2
+      container
+      spacing={5}
+      textAlign={"center"}
+      alignItems={"center"}
       style={{
-        display: "flex",
-        justifyContent: "center",
-        width: "100vw",
+        display: "grid-inline",
         height: "100vh",
-        backgroundColor: "#3b3b3b",
+        background: "#EAF3DB",
       }}
     >
-      <Paper
-        style={{
-          margin: "auto",
-          width: "30%",
-          height: "auto",
-          padding: "40px",
-        }}
-      >
-        <Typography fontSize={24} fontWeight={"bold"} textAlign={"center"}>
-          To-do List
+      <Grid2 item sm={12}>
+        <Box>
+          <AppBar style={{ backgroundColor: "#AFD83D",height: "15vh", }}>
+            <Typography
+              fontSize={60}
+              fontWeight={"bold"}
+              color={"black"}
+              style={{
+                fontFamily: "Fjalla One",
+                padding: "2px",
+                margin:"auto"
+              }}
+            >
+              • TO-DO LIST •
+            </Typography>
+          </AppBar>
+        </Box>
+      </Grid2>
+
+      <Grid2 item sm={6}>
+        <img src={original} alt="Imagem Todo" style={{ maxWidth: "100%" }} />
+      </Grid2>
+
+      <Grid2 item sm={5}>
+        <Typography
+          fontSize={50}
+          fontWeight={"bold"}
+          color={"#AFD83D"}
+          style={{
+            fontFamily: "Fjalla One",
+          }}
+        >
+          Organize suas tarefas e compromissos
         </Typography>
 
-        <div style={{
-          padding: "40px",
-          textAlign: "center",
-        }}
+        <Typography
+          fontSize={20}
+          color={"#9B9F92"}
+          style={{
+            fontFamily: "Fjalla One",
+            marginBottom: "5%",
+          }}
         >
-        <TextField 
-        id="outlined-basic"
-        label="Nova tarefa"
-        variant="outlined" 
-        size="small"
-        margin="dense"
-        fullWidth
-        value={textoTarefa}
-        onChange={e=> setTextoTarefa(e.target.value)}
-        />
+          Com a To-do List fica fácil e rápido planejar o seu dia a dia por meio de
+          listas de afazeres online.
+        </Typography>
 
-        <TextField 
-        id="standard-basic"
-        label="Descrição da tarefa"
-        variant="standard" 
-        size="small"
-        fullWidth
-        value={textoDescricao}
-        onChange={e=> setTextoDescricao(e.target.value)}
-        />
-
-        <Button variant="contained" onClick={() => addTarefa()}> Adicionar </Button>
-        </div>
-
-        {tarefas.map((tarefa) => {
-          return (
-            <div key={tarefa.id}>
-            <FormControlLabel 
-                label={tarefa.nome}
-                control={
-                  <Checkbox
-                    checked={tarefa.feito}
-                    onChange={() => mudaEstado(tarefa.id)}
-                  />
-                }
-              />
-              <Typography>{tarefa.descricao}</Typography>
-
-              <IconButton aria-label="delete"
-              onClick={() => deletaTarefa(tarefa.id)}> <DeleteIcon />
-              </ IconButton>
-
-              <Divider />
-            </div>
-          );
-        })}
-      </Paper>
-    </div>
+        <Button
+          variant="contained"
+          startIcon={<GoogleIcon />}
+          onClick={() =>
+            signInWithPopup(auth, provider).then((result) => {
+              console.log(result);
+            })
+          }
+        >
+          Login with google
+        </Button>
+      </Grid2>
+    </Grid2>
   );
 };
 
